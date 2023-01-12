@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.repository;
 
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
+import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
@@ -24,17 +25,17 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User create(User user) {
-        user.setId(idCounter++);
-        users.put(user.getId(), user);
-        return user;
+    public UserDto create(UserDto userDto) {
+        userDto.setId(idCounter++);
+        users.put(userDto.getId(), UserMapper.toUser(userDto));
+        return userDto;
     }
 
     @Override
-    public User update(long id, UserDto userDto) {
+    public User update(long id, User user) {
         if (users.containsKey(id)) {
-            if (userDto.getName() != null) users.get(id).setName(userDto.getName());
-            if (userDto.getEmail() != null) users.get(id).setEmail(userDto.getEmail());
+            if (user.getName() != null) users.get(id).setName(user.getName());
+            if (user.getEmail() != null) users.get(id).setEmail(user.getEmail());
             return users.get(id);
         } else throw new ObjectNotFoundException("User not found");
     }

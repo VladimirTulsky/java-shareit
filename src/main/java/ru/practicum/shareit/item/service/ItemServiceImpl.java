@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.PostItemDto;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -44,7 +44,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto create(long userId, PostItemDto itemDto) {
+    public ItemDto create(long userId, ItemDto itemDto) {
         userRepository.getById(userId).orElseThrow(() -> {
             log.warn("User not found");
             throw new ObjectNotFoundException("User not found");
@@ -54,12 +54,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto update(long userId, long itemId, ItemDto itemDto) {
+    public ItemDto update(long userId, long itemId, Item item) {
         itemRepository.findItemForUpdate(userId, itemId).orElseThrow(() -> {
             log.warn("Item not found for update");
             throw new ObjectNotFoundException("Item not found for update");
         });
         log.info("Item updated");
-        return itemRepository.update(userId, itemId, itemDto);
+        return itemRepository.update(userId, itemId, item);
     }
 }

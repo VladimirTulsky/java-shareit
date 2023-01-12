@@ -34,17 +34,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User create(User user) {
-        checkEmailDuplicates(user.getEmail());
+    public UserDto create(UserDto userDto) {
+        checkEmailDuplicates(userDto.getEmail());
         log.info("User created");
-        return repository.create(user);
+        return repository.create(userDto);
     }
 
     @Override
-    public User update(long id, UserDto userDto) {
-        if (userDto.getEmail() != null) checkEmailDuplicates(userDto.getEmail());
+    public User update(long id, User user) {
+        if (user.getEmail() != null) checkEmailDuplicates(user.getEmail());
         log.info("User updated");
-        return repository.update(id, userDto);
+        return repository.update(id, user);
     }
 
     @Override
