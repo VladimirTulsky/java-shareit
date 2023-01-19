@@ -70,14 +70,14 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public ItemDto update(long userId, long itemId, Item item) {
+    public ItemDto update(long userId, long itemId, ItemDto itemDto) {
         Item repoItem = items.get(userId).stream()
                 .filter(item1 -> item1.getId() == itemId)
                 .findFirst()
                 .get();
-        if (item.getName() != null) repoItem.setName(item.getName());
-        if (item.getDescription() != null) repoItem.setDescription(item.getDescription());
-        if (item.getAvailable() != null) repoItem.setAvailable(item.getAvailable());
+        if (itemDto.getName() != null) repoItem.setName(itemDto.getName());
+        if (itemDto.getDescription() != null) repoItem.setDescription(itemDto.getDescription());
+        if (itemDto.getAvailable() != null) repoItem.setAvailable(itemDto.getAvailable());
         items.get(userId).removeIf(item1 -> item1.getId() == itemId);
         items.get(userId).add(repoItem);
         return ItemMapper.toItemDto(repoItem);
