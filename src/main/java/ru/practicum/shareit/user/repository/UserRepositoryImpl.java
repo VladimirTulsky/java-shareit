@@ -32,11 +32,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User update(long id, User user) {
+    public UserDto update(long id, UserDto userDto) {
         if (users.containsKey(id)) {
-            if (user.getName() != null) users.get(id).setName(user.getName());
-            if (user.getEmail() != null) users.get(id).setEmail(user.getEmail());
-            return users.get(id);
+            if (userDto.getName() != null) users.get(id).setName(userDto.getName());
+            if (userDto.getEmail() != null) users.get(id).setEmail(userDto.getEmail());
+            return UserMapper.toUserDto(users.get(id));
         } else throw new ObjectNotFoundException("User not found");
     }
 
