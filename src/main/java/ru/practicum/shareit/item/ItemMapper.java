@@ -4,10 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.UserMapper;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
