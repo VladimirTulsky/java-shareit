@@ -1,18 +1,25 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import ru.practicum.shareit.user.model.User;
 
-@Getter
-@Setter
+import javax.persistence.*;
+
+@Getter @Setter @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "ITEMS")
 public class Item {
-    long id;
-    String name;
-    String description;
-    Boolean available;
-    long owner;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private String description;
+    @Column(name = "is_available")
+    private Boolean available;
+    @Column(name = "owner_id")
+    private Long owner;
+//    @Column(name = "request_id")
+//    private Long request;
 }

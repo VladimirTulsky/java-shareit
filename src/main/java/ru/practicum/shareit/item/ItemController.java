@@ -27,11 +27,6 @@ public class ItemController {
         return itemService.findItem(itemId);
     }
 
-    @GetMapping("/search")
-    public List<ItemDto> searchItem(@RequestParam String text) {
-        return itemService.searchItem(text);
-    }
-
     @PostMapping
     public ItemDto create(@RequestHeader("X-Sharer-User-Id") long userId, @Validated(Create.class) @RequestBody ItemDto itemDto) {
         return itemService.create(userId, itemDto);
@@ -40,5 +35,10 @@ public class ItemController {
     @PatchMapping("/{itemId}")
     public ItemDto update(@RequestHeader("X-Sharer-User-Id") long userId, @PathVariable long itemId, @RequestBody ItemDto itemDto) {
         return itemService.update(userId, itemId, itemDto);
+    }
+
+    @GetMapping("/search")
+    public List<ItemDto> searchItem(@RequestParam String text) {
+        return itemService.searchItem(text);
     }
 }
