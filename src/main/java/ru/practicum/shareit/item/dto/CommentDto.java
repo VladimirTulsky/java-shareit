@@ -8,7 +8,8 @@ import ru.practicum.shareit.user.Create;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@Getter @Setter
+@Getter
+@Setter
 @AllArgsConstructor
 public class CommentDto {
     private Long id;

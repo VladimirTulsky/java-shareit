@@ -5,7 +5,9 @@ import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 
-@Getter @Setter @ToString
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity

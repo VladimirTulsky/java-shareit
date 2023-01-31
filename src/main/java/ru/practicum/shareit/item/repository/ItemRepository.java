@@ -11,7 +11,7 @@ import java.util.List;
 public interface ItemRepository extends JpaRepository<Item, Long> {
     List<Item> findAllByOwnerIdOrderByIdAsc(long userId);
 
-    @Query( "select item from Item item " +
+    @Query("select item from Item item " +
             "where item.available = true " +
             "and (lower(item.name) like %?1% " +
             "or lower(item.description) like %?1%)")

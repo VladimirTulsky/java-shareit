@@ -4,8 +4,11 @@ import lombok.*;
 
 import javax.persistence.*;
 
-@Getter @Setter @ToString
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "USERS")
 public class User {
