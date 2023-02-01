@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
@@ -66,17 +67,25 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "order by booking.status desc")
     List<Booking> findByItemOwnerAndStatus(long userId, BookingStatus status);
 
-    @Query("select distinct booking from Booking booking " +
-            "where booking.end < ?2 " +
-            "and booking.item.id = ?1 " +
-            "order by booking.start desc ")
-    Optional<Booking> findLastBooking(long itemId, LocalDateTime now);
-
-    @Query("select distinct booking from Booking booking " +
-            "where booking.start > ?2 " +
-            "and booking.item.id = ?1 " +
-            "order by booking.start ")
-    Optional<Booking> findNextBooking(long itemId, LocalDateTime now);
-
     Optional<Booking> findByBookerIdAndItemIdAndEndBefore(long bookerId, long itemId, LocalDateTime end);
+
+    @Query("select distinct booking " +
+            "from Booking booking " +
+            "where booking.end < :now " +
+            "and booking.item.id in :ids " +
+            "and booking.item.owner.id = :userId " +
+            "order by booking.start asc ")
+    List<Booking> findBookingsLast(@Param("ids") List<Long> ids,
+                                   @Param("now") LocalDateTime now,
+                                   @Param("userId") long userId);
+
+    @Query("select distinct booking " +
+            "from Booking booking " +
+            "where booking.start > :now " +
+            "and booking.item.id in :ids " +
+            "and booking.item.owner.id = :userId " +
+            "order by booking.start asc ")
+    List<Booking> findBookingsNext(@Param("ids") List<Long> ids,
+                                   @Param("now") LocalDateTime now,
+                                   @Param("userId") long userId);
 }
