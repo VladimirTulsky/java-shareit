@@ -8,17 +8,19 @@ import ru.practicum.shareit.user.Create;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemDto {
-    private long id;
-    @NotBlank(groups = Create.class)
-    private String name;
-    @NotBlank(groups = Create.class)
-    private String description;
+public class CommentDto {
+    private Long id;
     @NotNull(groups = Create.class)
-    private Boolean available;
+    @NotBlank(groups = Create.class)
+    @Size(min = 5, max = 100)
+    private String text;
+    private String authorName;
+    private LocalDateTime created;
 }
