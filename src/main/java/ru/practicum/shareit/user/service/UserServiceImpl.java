@@ -54,9 +54,7 @@ public class UserServiceImpl implements UserService {
             log.warn("User with id {} not found", id);
             throw new ObjectNotFoundException("User not found");
         });
-        if (userDto.getEmail() != null) {
-            user.setEmail(userDto.getEmail());
-        }
+        if (userDto.getEmail() != null) user.setEmail(userDto.getEmail());
         if (userDto.getName() != null) user.setName(userDto.getName());
         log.info("User updated");
         return UserMapper.toUserDto(repository.save(user));
