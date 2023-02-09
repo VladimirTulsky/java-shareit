@@ -19,6 +19,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -38,6 +40,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final ItemRequestRepository requestRepository;
 
     @Override
     public List<ItemDtoBooking> findAll(long userId) {
@@ -60,9 +63,14 @@ public class ItemServiceImpl implements ItemService {
         User user = userRepository.findById(userId).orElseThrow(() -> {
             throw new ObjectNotFoundException("User not found");
         });
-        log.info("Item created");
-        Item item = itemRepository.save(ItemMapper.toItem(itemDto, user));
+        ItemRequest itemRequest = null;
+        if (itemDto.getRequestId() != null) {
+            itemRequest = requestRepository.findById(itemDto.getRequestId()).orElseThrow(() ->
+                new ObjectNotFoundException("Request not found"));
+        }
+        Item item = itemRepository.save(ItemMapper.toItem(itemDto, user, itemRequest));
         itemDto.setId(item.getId());
+        log.info("Item created");
         return itemDto;
     }
 

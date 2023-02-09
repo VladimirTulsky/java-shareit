@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingMapper;
@@ -82,29 +83,31 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDtoResponse> getByBooker(long userId, String state) {
+    public List<BookingDtoResponse> getByBooker(long userId, String state, int from, int size) {
         userRepository.findById(userId).orElseThrow(() -> {
             throw new ObjectNotFoundException("User not found");
         });
+        int page = from / size;
+        PageRequest pg = PageRequest.of(page, size);
         List<Booking> books = new ArrayList<>();
         switch (state) {
             case "ALL":
-                books.addAll(bookingRepository.findAllByBookerIdOrderByStartDesc(userId));
+                books.addAll(bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pg));
                 break;
             case "CURRENT":
-                books.addAll(bookingRepository.findByBookerCurrent(userId, LocalDateTime.now()));
+                books.addAll(bookingRepository.findByBookerCurrent(userId, LocalDateTime.now(), pg));
                 break;
             case "PAST":
-                books.addAll(bookingRepository.findByBookerPast(userId, LocalDateTime.now()));
+                books.addAll(bookingRepository.findByBookerPast(userId, LocalDateTime.now(), pg));
                 break;
             case "FUTURE":
-                books.addAll(bookingRepository.findByBookerFuture(userId, LocalDateTime.now()));
+                books.addAll(bookingRepository.findByBookerFuture(userId, LocalDateTime.now(), pg));
                 break;
             case "WAITING":
-                books.addAll(bookingRepository.findByBookerAndStatus(userId, BookingStatus.WAITING));
+                books.addAll(bookingRepository.findByBookerAndStatus(userId, BookingStatus.WAITING, pg));
                 break;
             case "REJECTED":
-                books.addAll(bookingRepository.findByBookerAndStatus(userId, BookingStatus.REJECTED));
+                books.addAll(bookingRepository.findByBookerAndStatus(userId, BookingStatus.REJECTED, pg));
                 break;
             default:
                 throw new UnsupportedStateException("Unknown state: " + state);
@@ -115,29 +118,31 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDtoResponse> getByOwner(long userId, String state) {
+    public List<BookingDtoResponse> getByOwner(long userId, String state, int from, int size) {
         userRepository.findById(userId).orElseThrow(() -> {
             throw new ObjectNotFoundException("User not found");
         });
+        int page = from / size;
+        PageRequest pg = PageRequest.of(page, size);
         List<Booking> books = new ArrayList<>();
         switch (state) {
             case "ALL":
-                books.addAll(bookingRepository.findByItemOwnerIdOrderByStartDesc(userId));
+                books.addAll(bookingRepository.findByItemOwnerIdOrderByStartDesc(userId, pg));
                 break;
             case "CURRENT":
-                books.addAll(bookingRepository.findByItemOwnerCurrent(userId, LocalDateTime.now()));
+                books.addAll(bookingRepository.findByItemOwnerCurrent(userId, LocalDateTime.now(), pg));
                 break;
             case "PAST":
-                books.addAll(bookingRepository.findByItemOwnerPast(userId, LocalDateTime.now()));
+                books.addAll(bookingRepository.findByItemOwnerPast(userId, LocalDateTime.now(), pg));
                 break;
             case "FUTURE":
-                books.addAll(bookingRepository.findByItemOwnerFuture(userId, LocalDateTime.now()));
+                books.addAll(bookingRepository.findByItemOwnerFuture(userId, LocalDateTime.now(), pg));
                 break;
             case "WAITING":
-                books.addAll(bookingRepository.findByItemOwnerAndStatus(userId, BookingStatus.WAITING));
+                books.addAll(bookingRepository.findByItemOwnerAndStatus(userId, BookingStatus.WAITING, pg));
                 break;
             case "REJECTED":
-                books.addAll(bookingRepository.findByItemOwnerAndStatus(userId, BookingStatus.REJECTED));
+                books.addAll(bookingRepository.findByItemOwnerAndStatus(userId, BookingStatus.REJECTED, pg));
                 break;
             default:
                 throw new UnsupportedStateException("Unknown state: " + state);
