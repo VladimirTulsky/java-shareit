@@ -57,13 +57,14 @@ class UserServiceImplTest {
 
     @Test
     void create_whenUserValid_thenUserSaved() {
-        UserDto expectedUserDto = new UserDto();
-        when(userRepository.save(new User())).thenReturn(new User());
+        UserDto expectedUserDto = new UserDto(1L, "User", "test@test.ru");
+        User user = new User(1L, "User", "test@test.ru");
+        when(userRepository.save(any())).thenReturn(user);
 
         UserDto actualUserDto = userService.create(expectedUserDto);
 
         assertEquals(expectedUserDto, actualUserDto);
-        verify(userRepository).save(new User());
+        verify(userRepository).save(any());
     }
 
     @Test
@@ -97,6 +98,6 @@ class UserServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(new User()));
         userService.delete(1L);
 
-        verify(userRepository).delete(new User());
+        verify(userRepository).delete(any());
     }
 }
