@@ -1,6 +1,5 @@
 package ru.practicum.shareit.request.repository;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,5 +14,5 @@ public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> 
 
     @Query("select itemRequest from ItemRequest itemRequest " +
             "where itemRequest.requestor.id != ?1")
-    Page<ItemRequest> findAllPageable(long userId, Pageable p);
+    List<ItemRequest> findAllPageable(long userId, Pageable p);
 }

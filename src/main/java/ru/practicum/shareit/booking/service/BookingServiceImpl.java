@@ -151,5 +151,4 @@ public class BookingServiceImpl implements BookingService {
                 .map(BookingMapper::toBookingDtoResponse)
                 .collect(Collectors.toList());
     }
-
 }

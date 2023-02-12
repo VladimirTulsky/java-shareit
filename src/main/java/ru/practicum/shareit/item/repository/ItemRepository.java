@@ -22,5 +22,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             "where item.itemRequest.id in :ids")
     List<Item> searchByRequestsId(@Param("ids") List<Long> ids);
 
+    @Query("select item from Item item " +
+            "where item.itemRequest.id = ?1")
     List<Item> findByItemRequestId(long requestId);
 }

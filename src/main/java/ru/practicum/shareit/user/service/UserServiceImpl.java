@@ -20,19 +20,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
 
     @Override
     public List<UserDto> getAllUsers() {
         log.info("All users sent");
-        return repository.findAll().stream()
+        return userRepository.findAll().stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public UserDto getById(long id) {
-        User user = repository.findById(id).orElseThrow(() -> {
+        User user = userRepository.findById(id).orElseThrow(() -> {
             log.warn("User with id {} not found", id);
             throw new ObjectNotFoundException("User not found");
         });
@@ -43,27 +43,27 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto create(UserDto userDto) {
         log.info("User created");
-        User user = repository.save(UserMapper.toUser(userDto));
+        User user = userRepository.save(UserMapper.toUser(userDto));
         return UserMapper.toUserDto(user);
     }
 
     @Override
     @Transactional
     public UserDto update(long id, UserDto userDto) {
-        User user = repository.findById(id).orElseThrow(() -> {
+        User user = userRepository.findById(id).orElseThrow(() -> {
             log.warn("User with id {} not found", id);
             throw new ObjectNotFoundException("User not found");
         });
         if (userDto.getEmail() != null) user.setEmail(userDto.getEmail());
         if (userDto.getName() != null) user.setName(userDto.getName());
         log.info("User updated");
-        return UserMapper.toUserDto(repository.save(user));
+        return UserMapper.toUserDto(userRepository.save(user));
     }
 
     @Override
     @Transactional
     public void delete(long id) {
         log.info("User with id {} deleted", id);
-        repository.findById(id).ifPresent(repository::delete);
+        userRepository.findById(id).ifPresent(userRepository::delete);
     }
 }

@@ -122,7 +122,7 @@ public class ItemServiceImpl implements ItemService {
         List<Booking> bookings = bookingRepository.findBookingsLast(ids, LocalDateTime.now(), userId);
         Map<Long, ItemDtoBooking> itemsMap = items.stream()
                 .map(ItemMapper::toItemDtoBooking)
-                .collect(Collectors.toMap(ItemDtoBooking::getId, film -> film, (a, b) -> b));
+                .collect(Collectors.toMap(ItemDtoBooking::getId, item -> item, (a, b) -> b));
         bookings.forEach(booking -> itemsMap.get(booking.getItem().getId())
                 .setLastBooking(BookingMapper.toBookingDto(booking)));
         bookings = bookingRepository.findBookingsNext(ids, LocalDateTime.now(), userId);
