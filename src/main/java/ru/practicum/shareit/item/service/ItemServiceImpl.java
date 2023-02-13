@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingMapper;
@@ -43,9 +44,9 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRequestRepository requestRepository;
 
     @Override
-    public List<ItemDtoBooking> findAll(long userId) {
+    public List<ItemDtoBooking> findAll(long userId, Pageable p) {
         log.info("Items sent");
-        return setAllBookingsAndComments(userId, itemRepository.findAllByOwnerIdOrderByIdAsc(userId));
+        return setAllBookingsAndComments(userId, itemRepository.findAllByOwnerIdOrderByIdAsc(userId, p));
     }
 
     @Override
@@ -93,10 +94,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> searchItem(String text) {
+    public List<ItemDto> searchItem(String text, Pageable p) {
         log.info("Search results sent");
         if (text.isBlank()) return Collections.emptyList();
-        return itemRepository.searchByText(text.toLowerCase())
+        return itemRepository.searchByText(text.toLowerCase(), p)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());

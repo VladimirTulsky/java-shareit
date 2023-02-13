@@ -7,6 +7,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -55,9 +56,10 @@ class ItemServiceImplTest {
 
     @Test
     void findAllTest() {
-        when(itemRepository.findAllByOwnerIdOrderByIdAsc(1L))
+        PageRequest p = PageRequest.of(0, 20);
+        when(itemRepository.findAllByOwnerIdOrderByIdAsc(anyLong(), any()))
                 .thenReturn(Collections.emptyList());
-        assertTrue(itemService.findAll(1L).isEmpty());
+        assertTrue(itemService.findAll(1L, p).isEmpty());
     }
 
     @Test
@@ -193,18 +195,20 @@ class ItemServiceImplTest {
                 true,
                 user,
                 null);
-        when(itemRepository.searchByText(anyString())).thenReturn(Collections.singletonList(item));
+        when(itemRepository.searchByText(anyString(), any())).thenReturn(Collections.singletonList(item));
+        PageRequest p = PageRequest.of(0, 20);
 
-        List<ItemDto> actual = itemService.searchItem("дрель");
+        List<ItemDto> actual = itemService.searchItem("дрель", p);
         assertEquals(1, actual.size());
         assertEquals(ItemMapper.toItemDto(item), actual.get(0));
     }
 
     @Test
     void searchItem_whenTextIsBlank_thenReturnEmptyList() {
-        when(itemRepository.searchByText(anyString())).thenReturn(Collections.emptyList());
+        when(itemRepository.searchByText(anyString(), any())).thenReturn(Collections.emptyList());
+        PageRequest p = PageRequest.of(0, 20);
 
-        List<ItemDto> actual = itemService.searchItem("дрель");
+        List<ItemDto> actual = itemService.searchItem("дрель", p);
         assertTrue(actual.isEmpty());
     }
 

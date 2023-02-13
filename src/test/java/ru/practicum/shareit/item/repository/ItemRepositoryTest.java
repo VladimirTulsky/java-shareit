@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -51,8 +52,9 @@ class ItemRepositoryTest {
         em.persist(user);
         em.persist(item2);
         em.persist(item);
+        PageRequest p = PageRequest.of(0, 20);
 
-        List<Item> items = itemRepository.findAllByOwnerIdOrderByIdAsc(user.getId());
+        List<Item> items = itemRepository.findAllByOwnerIdOrderByIdAsc(user.getId(), p);
 
         assertEquals(item2, items.get(0));
         assertEquals(item, items.get(1));
@@ -63,8 +65,9 @@ class ItemRepositoryTest {
         em.persist(user);
         em.persist(item2);
         em.persist(item);
+        PageRequest p = PageRequest.of(0, 20);
 
-        List<Item> items = itemRepository.searchByText("first");
+        List<Item> items = itemRepository.searchByText("first", p);
         assertEquals(1, items.size());
         assertEquals("name1", items.get(0).getName());
     }

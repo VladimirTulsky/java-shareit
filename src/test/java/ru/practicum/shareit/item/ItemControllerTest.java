@@ -53,7 +53,7 @@ class ItemControllerTest {
         User user = UserMapper.toUser(userDto);
         Item item = ItemMapper.toItem(itemDto, user, null);
         ItemDtoBooking itemDtoBooking = ItemMapper.toItemDtoBooking(item);
-        when(itemService.findAll(anyLong())).thenReturn(Collections.singletonList(itemDtoBooking));
+        when(itemService.findAll(anyLong(), any())).thenReturn(Collections.singletonList(itemDtoBooking));
 
         mvc.perform(get("/items")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -131,7 +131,7 @@ class ItemControllerTest {
 
     @Test
     void searchItemTest() throws Exception {
-        when(itemService.searchItem(anyString())).thenReturn(Collections.singletonList(itemDto));
+        when(itemService.searchItem(anyString(), any())).thenReturn(Collections.singletonList(itemDto));
 
         mvc.perform(get("/items/search?text=дрель")
                         .contentType(MediaType.APPLICATION_JSON)
