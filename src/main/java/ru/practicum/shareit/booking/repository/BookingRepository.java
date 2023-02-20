@@ -75,7 +75,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "where booking.end < :now " +
             "and booking.item.id in :ids " +
             "and booking.item.owner.id = :userId " +
-            "order by booking.start asc ")
+            "order by booking.start desc")
     List<Booking> findBookingsLast(@Param("ids") List<Long> ids,
                                    @Param("now") LocalDateTime now,
                                    @Param("userId") long userId);

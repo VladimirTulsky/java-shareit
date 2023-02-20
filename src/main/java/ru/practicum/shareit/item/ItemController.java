@@ -16,6 +16,7 @@ import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
+@Validated
 @RequestMapping("/items")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class ItemController {
