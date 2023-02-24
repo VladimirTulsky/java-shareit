@@ -2,8 +2,8 @@ package ru.practicum.shareit.booking.dto;
 
 import lombok.*;
 import ru.practicum.shareit.booking.BookingStatus;
-import ru.practicum.shareit.user.Create;
-import ru.practicum.shareit.user.Update;
+import ru.practicum.shareit.Create;
+import ru.practicum.shareit.Update;
 
 import javax.validation.constraints.Future;
 import javax.validation.constraints.FutureOrPresent;
