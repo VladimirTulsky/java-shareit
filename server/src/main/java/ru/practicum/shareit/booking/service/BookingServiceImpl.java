@@ -45,9 +45,6 @@ public class BookingServiceImpl implements BookingService {
         });
         if (item.getOwner().getId() == bookerId) throw new ObjectNotFoundException("You can't book your item");
         if (!item.getAvailable()) throw new BadRequestException("Item not available now for booking");
-        if (bookingDto.getEnd().isBefore(bookingDto.getStart())) {
-            throw new BadRequestException("Wrong time to book this item");
-        }
         bookingDto.setStatus(BookingStatus.WAITING);
         Booking booking = bookingRepository.save(BookingMapper.toBooking(bookingDto, item, user));
         BookingDtoResponse bookingDtoResponse = BookingMapper.toBookingDtoResponse(booking);

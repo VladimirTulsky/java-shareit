@@ -93,7 +93,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> searchItem(String text, Pageable p) {
         log.info("Search results sent");
-        if (text.isBlank()) return Collections.emptyList();
         return itemRepository.searchByText(text.toLowerCase(), p)
                 .stream()
                 .map(ItemMapper::toItemDto)

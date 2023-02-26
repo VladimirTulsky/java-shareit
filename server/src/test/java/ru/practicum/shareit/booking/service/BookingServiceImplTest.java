@@ -123,21 +123,6 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void create_whenEndBeforeStart_thenExceptionThrown() {
-        Item itemTest = item;
-        itemTest.setId(49L);
-        bookingDto.setItemId(49L);
-        bookingDto.setEnd(LocalDateTime.now().minusDays(2));
-
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.ofNullable(item));
-        when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user2));
-
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> bookingService.create(4L, bookingDto));
-        assertEquals("Wrong time to book this item", ex.getMessage());
-    }
-
-    @Test
     void changeStatus_whenItemOwnerChangeToApprove_thenStatusUpdated() {
         Booking booking = BookingMapper.toBooking(bookingDto, item, user);
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
