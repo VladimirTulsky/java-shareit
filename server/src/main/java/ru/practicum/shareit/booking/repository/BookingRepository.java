@@ -70,12 +70,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Optional<Booking> findByBookerIdAndItemIdAndEndBefore(long bookerId, long itemId, LocalDateTime end);
 
-    @Query("select distinct booking " +
+    @Query("select booking " +
             "from Booking booking " +
-            "where booking.end < :now " +
-            "and booking.item.id in :ids " +
+            "where booking.item.id in :ids " +
+            "and booking.start < :now " +
             "and booking.item.owner.id = :userId " +
-            "order by booking.start desc")
+            "and booking.start in ( " +
+            "select max(b.start) " +
+            "from Booking b " +
+            "where b.item.id = booking.item.id " +
+            "and b.start < :now) ")
     List<Booking> findBookingsLast(@Param("ids") List<Long> ids,
                                    @Param("now") LocalDateTime now,
                                    @Param("userId") long userId);
@@ -85,7 +89,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "where booking.start > :now " +
             "and booking.item.id in :ids " +
             "and booking.item.owner.id = :userId " +
-            "order by booking.start asc ")
+            "and booking.start in ( " +
+            "select min(b.start) " +
+            "from Booking b " +
+            "where b.item.id = booking.item.id " +
+            "and b.start > :now) ")
     List<Booking> findBookingsNext(@Param("ids") List<Long> ids,
                                    @Param("now") LocalDateTime now,
                                    @Param("userId") long userId);
