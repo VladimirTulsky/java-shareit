@@ -2,17 +2,14 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoResponse;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.Create;
 
 import java.util.List;
 
 @RestController
-@Validated
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class BookingController {
@@ -20,7 +17,7 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public BookingDtoResponse create(@RequestHeader("X-Sharer-User-Id") long id, @Validated(Create.class) @RequestBody BookingDto bookingDto) {
+    public BookingDtoResponse create(@RequestHeader("X-Sharer-User-Id") long id, @RequestBody BookingDto bookingDto) {
         return bookingService.create(id, bookingDto);
     }
 
