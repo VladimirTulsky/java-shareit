@@ -2,27 +2,26 @@ package ru.practicum.shareit.booking.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoResponse;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.strategy.searchByBooker.*;
+import ru.practicum.shareit.booking.strategy.searchByOwner.*;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
-import ru.practicum.shareit.exception.UnsupportedStateException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,14 +30,28 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BookingServiceImplTest {
-    @Mock
-    UserRepository userRepository;
-    @Mock
-    BookingRepository bookingRepository;
-    @Mock
-    ItemRepository itemRepository;
-    @InjectMocks
-    BookingServiceImpl bookingService;
+    UserRepository userRepository = Mockito.mock(UserRepository.class);
+    BookingRepository bookingRepository = Mockito.mock(BookingRepository.class);
+    ItemRepository itemRepository = Mockito.mock(ItemRepository.class);
+
+    List<BookingSearchByBooker> bookingSearchesByBooker = List.of(
+            new AllBookingSearchByBooker(bookingRepository),
+            new CurrentBookingSearchByBooker(bookingRepository),
+            new PastBookingSearchByBooker(bookingRepository),
+            new FutureBookingSearchByBooker(bookingRepository),
+            new WaitingBookingSearchByBooker(bookingRepository),
+            new RejectedBookingSearchByBooker(bookingRepository));
+
+    List<BookingSearchByOwner> bookingSearchesByOwner = List.of(
+            new AllBookingSearchByOwner(bookingRepository),
+            new CurrentBookingSearchByOwner(bookingRepository),
+            new PastBookingSearchByOwner(bookingRepository),
+            new FutureBookingSearchByOwner(bookingRepository),
+            new WaitingBookingSearchByOwner(bookingRepository),
+            new RejectedBookingSearchByOwner(bookingRepository));
+
+    BookingServiceImpl bookingServiceImpl = new BookingServiceImpl(userRepository, bookingRepository, itemRepository,
+            bookingSearchesByBooker, bookingSearchesByOwner);
 
     BookingDto bookingDto = new BookingDto(
             1L,
@@ -72,7 +85,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user2));
         when(bookingRepository.save(any())).thenReturn(booking);
 
-        BookingDtoResponse actual = bookingService.create(2L, bookingDto);
+        BookingDtoResponse actual = bookingServiceImpl.create(2L, bookingDto);
         assertEquals(forCheck, actual);
         assertEquals(bDto.getId(), bookingDto.getId());
         verify(bookingRepository).save(any());
@@ -83,7 +96,7 @@ class BookingServiceImplTest {
         when(itemRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ObjectNotFoundException ex = assertThrows(ObjectNotFoundException.class,
-                () -> bookingService.create(1L, bookingDto));
+                () -> bookingServiceImpl.create(1L, bookingDto));
         assertEquals("Item not found", ex.getMessage());
     }
 
@@ -93,7 +106,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ObjectNotFoundException ex = assertThrows(ObjectNotFoundException.class,
-                () -> bookingService.create(1L, bookingDto));
+                () -> bookingServiceImpl.create(1L, bookingDto));
         assertEquals("Wrong user", ex.getMessage());
     }
 
@@ -103,7 +116,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user2));
 
         ObjectNotFoundException ex = assertThrows(ObjectNotFoundException.class,
-                () -> bookingService.create(1L, bookingDto));
+                () -> bookingServiceImpl.create(1L, bookingDto));
         assertEquals("You can't book your item", ex.getMessage());
     }
 
@@ -118,7 +131,7 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user2));
 
         BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> bookingService.create(4L, bookingDto));
+                () -> bookingServiceImpl.create(4L, bookingDto));
         assertEquals("Item not available now for booking", ex.getMessage());
     }
 
@@ -128,7 +141,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any())).thenReturn(booking);
 
-        BookingDtoResponse resp = bookingService.changeStatus(user.getId(), booking.getId(), true);
+        BookingDtoResponse resp = bookingServiceImpl.changeStatus(user.getId(), booking.getId(), true);
 
         assertEquals(BookingStatus.APPROVED, resp.getStatus());
         verify(bookingRepository).save(any());
@@ -140,7 +153,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any())).thenReturn(booking);
 
-        BookingDtoResponse resp = bookingService.changeStatus(user.getId(), booking.getId(), false);
+        BookingDtoResponse resp = bookingServiceImpl.changeStatus(user.getId(), booking.getId(), false);
 
         assertEquals(BookingStatus.REJECTED, resp.getStatus());
         verify(bookingRepository).save(any());
@@ -151,7 +164,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ObjectNotFoundException ex = assertThrows(ObjectNotFoundException.class,
-                () -> bookingService.changeStatus(1L, 1L, true));
+                () -> bookingServiceImpl.changeStatus(1L, 1L, true));
         assertEquals("Booking not found", ex.getMessage());
     }
 
@@ -161,7 +174,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
 
         ObjectNotFoundException ex = assertThrows(ObjectNotFoundException.class,
-                () -> bookingService.changeStatus(999L, 1L, true));
+                () -> bookingServiceImpl.changeStatus(999L, 1L, true));
         assertEquals("You can't confirm this booking", ex.getMessage());
     }
 
@@ -172,7 +185,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
 
         BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> bookingService.changeStatus(1L, 1L, true));
+                () -> bookingServiceImpl.changeStatus(1L, 1L, true));
         assertEquals("You can't change status after approving", ex.getMessage());
     }
 
@@ -181,7 +194,7 @@ class BookingServiceImplTest {
         Booking booking = BookingMapper.toBooking(bookingDto, item, user);
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
 
-        BookingDtoResponse resp = bookingService.getBookingInfo(user.getId(), booking.getId());
+        BookingDtoResponse resp = bookingServiceImpl.getBookingInfo(user.getId(), booking.getId());
         assertNotNull(resp);
         assertEquals(booking.getItem().getName(), resp.getItem().getName());
     }
@@ -192,7 +205,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
 
         ObjectNotFoundException ex = assertThrows(ObjectNotFoundException.class,
-                () -> bookingService.getBookingInfo(999L, booking.getId()));
+                () -> bookingServiceImpl.getBookingInfo(999L, booking.getId()));
         assertEquals("Access denied", ex.getMessage());
     }
 
@@ -201,17 +214,19 @@ class BookingServiceImplTest {
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         ObjectNotFoundException ex = assertThrows(ObjectNotFoundException.class,
-                () -> bookingService.getBookingInfo(1L, 1L));
+                () -> bookingServiceImpl.getBookingInfo(1L, 1L));
         assertEquals("Booking not found", ex.getMessage());
     }
 
     @Test
     void getByBooker_whenBookerAllState_thenReturnBooking() {
+
         Booking booking = BookingMapper.toBooking(bookingDto, item, user);
+        PageRequest p = PageRequest.of(0, 20);
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findAllByBookerIdOrderByStartDesc(anyLong(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByBooker(user.getId(), "ALL", 0, 10);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByBooker(user.getId(), "ALL", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findAllByBookerIdOrderByStartDesc(anyLong(), any());
@@ -223,7 +238,8 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findByBookerCurrent(anyLong(), any(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByBooker(user.getId(), "CURRENT", 0, 10);
+        PageRequest p = PageRequest.of(0, 20);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByBooker(user.getId(), "CURRENT", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findByBookerCurrent(anyLong(), any(), any());
@@ -235,7 +251,8 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findByBookerPast(anyLong(), any(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByBooker(user.getId(), "PAST", 0, 10);
+        PageRequest p = PageRequest.of(0, 20);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByBooker(user.getId(), "PAST", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findByBookerPast(anyLong(), any(), any());
@@ -247,7 +264,8 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findByBookerFuture(anyLong(), any(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByBooker(user.getId(), "FUTURE", 0, 10);
+        PageRequest p = PageRequest.of(0, 20);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByBooker(user.getId(), "FUTURE", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findByBookerFuture(anyLong(), any(), any());
@@ -259,7 +277,8 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findByBookerAndStatus(anyLong(), any(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByBooker(user.getId(), "WAITING", 0, 10);
+        PageRequest p = PageRequest.of(0, 20);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByBooker(user.getId(), "WAITING", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findByBookerAndStatus(anyLong(), any(), any());
@@ -271,19 +290,11 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findByBookerAndStatus(anyLong(), any(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByBooker(user.getId(), "REJECTED", 0, 10);
+        PageRequest p = PageRequest.of(0, 20);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByBooker(user.getId(), "REJECTED", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findByBookerAndStatus(anyLong(), any(), any());
-    }
-
-    @Test
-    void getByBooker_whenUnsupportedStatus_thenExceptionThrown() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
-
-        UnsupportedStateException ex = assertThrows(UnsupportedStateException.class,
-                () -> bookingService.getByBooker(user.getId(), "unsupported", 0, 10));
-        assertEquals("Unknown state: unsupported", ex.getMessage());
     }
 
     @Test
@@ -292,7 +303,8 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findByItemOwnerIdOrderByStartDesc(anyLong(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByOwner(user.getId(), "ALL", 0, 10);
+        PageRequest p = PageRequest.of(0, 20);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByOwner(user.getId(), "ALL", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findByItemOwnerIdOrderByStartDesc(anyLong(), any());
@@ -304,7 +316,8 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findByItemOwnerCurrent(anyLong(), any(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByOwner(user.getId(), "CURRENT", 0, 10);
+        PageRequest p = PageRequest.of(0, 20);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByOwner(user.getId(), "CURRENT", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findByItemOwnerCurrent(anyLong(), any(), any());
@@ -316,7 +329,8 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findByItemOwnerPast(anyLong(), any(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByOwner(user.getId(), "PAST", 0, 10);
+        PageRequest p = PageRequest.of(0, 20);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByOwner(user.getId(), "PAST", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findByItemOwnerPast(anyLong(), any(), any());
@@ -328,7 +342,8 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findByItemOwnerFuture(anyLong(), any(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByOwner(user.getId(), "FUTURE", 0, 10);
+        PageRequest p = PageRequest.of(0, 20);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByOwner(user.getId(), "FUTURE", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findByItemOwnerFuture(anyLong(), any(), any());
@@ -340,7 +355,8 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findByItemOwnerAndStatus(anyLong(), any(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByOwner(user.getId(), "WAITING", 0, 10);
+        PageRequest p = PageRequest.of(0, 20);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByOwner(user.getId(), "WAITING", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findByItemOwnerAndStatus(anyLong(), any(), any());
@@ -352,36 +368,30 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(bookingRepository.findByItemOwnerAndStatus(anyLong(), any(), any())).thenReturn(Collections.singletonList(booking));
 
-        List<BookingDtoResponse> resp = bookingService.getByOwner(user.getId(), "REJECTED", 0, 10);
+        PageRequest p = PageRequest.of(0, 20);
+        List<BookingDtoResponse> resp = bookingServiceImpl.getByOwner(user.getId(), "REJECTED", p);
         assertFalse(resp.isEmpty());
         assertEquals(booking.getItem().getName(), resp.get(0).getItem().getName());
         verify(bookingRepository, times(1)).findByItemOwnerAndStatus(anyLong(), any(), any());
     }
 
     @Test
-    void getByOwner_whenUnsupportedStatus_thenExceptionThrown() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
-
-        UnsupportedStateException ex = assertThrows(UnsupportedStateException.class,
-                () -> bookingService.getByOwner(user.getId(), "unsupported", 0, 10));
-        assertEquals("Unknown state: unsupported", ex.getMessage());
-    }
-
-    @Test
     void getByBooker_whenBookerNotFound_thenExceptionThrown() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
+        PageRequest p = PageRequest.of(0, 20);
         ObjectNotFoundException ex = assertThrows(ObjectNotFoundException.class,
-                () -> bookingService.getByBooker(user.getId(), "ALL", 0, 10));
-        assertEquals("User not found", ex.getMessage());
+                () -> bookingServiceImpl.getByBooker(user.getId(), "ALL", p));
+        assertEquals("Booker not found", ex.getMessage());
     }
 
     @Test
     void getByOwner_whenBookerNotFound_thenExceptionThrown() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
+        PageRequest p = PageRequest.of(0, 20);
         ObjectNotFoundException ex = assertThrows(ObjectNotFoundException.class,
-                () -> bookingService.getByOwner(user.getId(), "ALL", 0, 10));
-        assertEquals("User not found", ex.getMessage());
+                () -> bookingServiceImpl.getByOwner(user.getId(), "ALL", p));
+        assertEquals("Owner not found", ex.getMessage());
     }
 }

@@ -1,9 +1,8 @@
 package ru.practicum.shareit.booking.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingMapper;
@@ -12,27 +11,43 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoResponse;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.strategy.BookingParams;
+import ru.practicum.shareit.booking.strategy.searchByBooker.BookingSearchByBooker;
+import ru.practicum.shareit.booking.strategy.searchByOwner.BookingSearchByOwner;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
-import ru.practicum.shareit.exception.UnsupportedStateException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @Transactional(readOnly = true)
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
+    private final Map<String, BookingSearchByBooker> bookingSearchByBookerMap = new HashMap<>();
+    private final Map<String, BookingSearchByOwner> bookingSearchByOwnerMap = new HashMap<>();
+
+    @Autowired
+    public BookingServiceImpl(UserRepository userRepository,
+                              BookingRepository bookingRepository,
+                              ItemRepository itemRepository,
+                              List<BookingSearchByBooker> bookingSearchesByBooker,
+                              List<BookingSearchByOwner> bookingSearchesByOwner) {
+        this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
+        this.itemRepository = itemRepository;
+        bookingSearchesByBooker.forEach(bookingSearch -> bookingSearchByBookerMap.put(bookingSearch.getType(), bookingSearch));
+        bookingSearchesByOwner.forEach(bookingSearch -> bookingSearchByOwnerMap.put(bookingSearch.getType(), bookingSearch));
+    }
 
     @Override
     @Transactional
@@ -80,70 +95,22 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDtoResponse> getByBooker(long userId, String state, int from, int size) {
+    public List<BookingDtoResponse> getByBooker(long userId, String state, Pageable p) {
         userRepository.findById(userId).orElseThrow(() -> {
-            throw new ObjectNotFoundException("User not found");
+            throw new ObjectNotFoundException("Booker not found");
         });
-        int page = from / size;
-        PageRequest pg = PageRequest.of(page, size);
-        List<Booking> books = new ArrayList<>();
-        switch (state) {
-            case "ALL":
-                books.addAll(bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pg));
-                break;
-            case "CURRENT":
-                books.addAll(bookingRepository.findByBookerCurrent(userId, LocalDateTime.now(), pg));
-                break;
-            case "PAST":
-                books.addAll(bookingRepository.findByBookerPast(userId, LocalDateTime.now(), pg));
-                break;
-            case "FUTURE":
-                books.addAll(bookingRepository.findByBookerFuture(userId, LocalDateTime.now(), pg));
-                break;
-            case "WAITING":
-                books.addAll(bookingRepository.findByBookerAndStatus(userId, BookingStatus.WAITING, pg));
-                break;
-            case "REJECTED":
-                books.addAll(bookingRepository.findByBookerAndStatus(userId, BookingStatus.REJECTED, pg));
-                break;
-            default:
-                throw new UnsupportedStateException("Unknown state: " + state);
-        }
+        List<Booking> books = bookingSearchByBookerMap.get(state).search(new BookingParams(userId, p));
         return books.stream()
                 .map(BookingMapper::toBookingDtoResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<BookingDtoResponse> getByOwner(long userId, String state, int from, int size) {
+    public List<BookingDtoResponse> getByOwner(long userId, String state, Pageable p) {
         userRepository.findById(userId).orElseThrow(() -> {
-            throw new ObjectNotFoundException("User not found");
+            throw new ObjectNotFoundException("Owner not found");
         });
-        int page = from / size;
-        PageRequest pg = PageRequest.of(page, size);
-        List<Booking> books = new ArrayList<>();
-        switch (state) {
-            case "ALL":
-                books.addAll(bookingRepository.findByItemOwnerIdOrderByStartDesc(userId, pg));
-                break;
-            case "CURRENT":
-                books.addAll(bookingRepository.findByItemOwnerCurrent(userId, LocalDateTime.now(), pg));
-                break;
-            case "PAST":
-                books.addAll(bookingRepository.findByItemOwnerPast(userId, LocalDateTime.now(), pg));
-                break;
-            case "FUTURE":
-                books.addAll(bookingRepository.findByItemOwnerFuture(userId, LocalDateTime.now(), pg));
-                break;
-            case "WAITING":
-                books.addAll(bookingRepository.findByItemOwnerAndStatus(userId, BookingStatus.WAITING, pg));
-                break;
-            case "REJECTED":
-                books.addAll(bookingRepository.findByItemOwnerAndStatus(userId, BookingStatus.REJECTED, pg));
-                break;
-            default:
-                throw new UnsupportedStateException("Unknown state: " + state);
-        }
+        List<Booking> books = bookingSearchByOwnerMap.get(state).search(new BookingParams(userId, p));
         return books.stream()
                 .map(BookingMapper::toBookingDtoResponse)
                 .collect(Collectors.toList());
