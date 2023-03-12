@@ -14,6 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class RejectedBookingSearchByOwner implements BookingSearchByOwner {
     private final BookingRepository bookingRepository;
+
     @Override
     public List<Booking> search(BookingParams params) {
         return bookingRepository.findByItemOwnerAndStatus(params.getUserId(), BookingStatus.REJECTED, params.getP());

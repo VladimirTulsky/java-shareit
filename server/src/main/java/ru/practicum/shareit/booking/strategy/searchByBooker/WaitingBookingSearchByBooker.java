@@ -15,7 +15,6 @@ import java.util.List;
 public class WaitingBookingSearchByBooker implements BookingSearchByBooker {
     private final BookingRepository bookingRepository;
 
-
     @Override
     public List<Booking> search(BookingParams params) {
         return bookingRepository.findByBookerAndStatus(params.getUserId(), BookingStatus.WAITING, params.getP());

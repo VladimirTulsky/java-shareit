@@ -13,6 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class AllBookingSearchByBooker implements BookingSearchByBooker {
     private final BookingRepository bookingRepository;
+
     @Override
     public List<Booking> search(BookingParams params) {
         return bookingRepository.findAllByBookerIdOrderByStartDesc(params.getUserId(), params.getP());

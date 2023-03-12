@@ -15,7 +15,6 @@ import java.util.List;
 public class RejectedBookingSearchByBooker implements BookingSearchByBooker {
     private final BookingRepository bookingRepository;
 
-
     @Override
     public List<Booking> search(BookingParams params) {
         return bookingRepository.findByBookerAndStatus(params.getUserId(), BookingStatus.REJECTED, params.getP());

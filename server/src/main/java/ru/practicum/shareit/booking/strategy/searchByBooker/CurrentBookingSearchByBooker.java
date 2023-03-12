@@ -15,7 +15,6 @@ import java.util.List;
 public class CurrentBookingSearchByBooker implements BookingSearchByBooker {
     private final BookingRepository bookingRepository;
 
-
     @Override
     public List<Booking> search(BookingParams params) {
         return bookingRepository.findByBookerCurrent(params.getUserId(), LocalDateTime.now(), params.getP());

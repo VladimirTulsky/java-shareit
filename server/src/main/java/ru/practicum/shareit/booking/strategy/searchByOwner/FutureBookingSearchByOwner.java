@@ -14,6 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FutureBookingSearchByOwner implements BookingSearchByOwner {
     private final BookingRepository bookingRepository;
+
     @Override
     public List<Booking> search(BookingParams params) {
         return bookingRepository.findByItemOwnerFuture(params.getUserId(), LocalDateTime.now(), params.getP());

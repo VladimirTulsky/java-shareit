@@ -15,7 +15,6 @@ import java.util.List;
 public class PastBookingSearchByBooker implements BookingSearchByBooker {
     private final BookingRepository bookingRepository;
 
-
     @Override
     public List<Booking> search(BookingParams params) {
         return bookingRepository.findByBookerPast(params.getUserId(), LocalDateTime.now(), params.getP());
