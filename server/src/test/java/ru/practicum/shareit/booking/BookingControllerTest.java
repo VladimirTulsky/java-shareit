@@ -103,7 +103,7 @@ class BookingControllerTest {
 
     @Test
     void getByBookerTest() throws Exception {
-        when(bookingService.getByBooker(anyLong(), anyString(), anyInt(), anyInt())).thenReturn(Collections.singletonList(bdr));
+        when(bookingService.getByBooker(anyLong(), anyString(), any())).thenReturn(Collections.singletonList(bdr));
 
         mvc.perform(get("/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -117,7 +117,7 @@ class BookingControllerTest {
 
     @Test
     void getByOwnerTest() throws Exception {
-        when(bookingService.getByOwner(anyLong(), anyString(), anyInt(), anyInt())).thenReturn(Collections.singletonList(bdr));
+        when(bookingService.getByOwner(anyLong(), anyString(), any())).thenReturn(Collections.singletonList(bdr));
 
         mvc.perform(get("/bookings/owner")
                         .contentType(MediaType.APPLICATION_JSON)

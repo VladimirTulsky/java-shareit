@@ -10,6 +10,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.UnsupportedStateException;
 
 import java.util.Map;
 
@@ -35,6 +36,11 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getByBooker(long userId, String state, Integer from, Integer size) {
+        try {
+            BookingStates.valueOf(state);
+        } catch (IllegalArgumentException e) {
+            throw new UnsupportedStateException("Unknown state: " + state);
+        }
         Map<String, Object> parameters = Map.of(
                 "state", state,
                 "from", from,
@@ -55,6 +61,11 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getByOwner(long userId, String state, int from, int size) {
+        try {
+            BookingStates.valueOf(state);
+        } catch (IllegalArgumentException e) {
+            throw new UnsupportedStateException("Unknown state: " + state);
+        }
         Map<String, Object> parameters = Map.of(
                 "state", state,
                 "from", from,
