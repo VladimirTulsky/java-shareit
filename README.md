@@ -10,7 +10,7 @@
 4. Отзывы, комментарии
 
 Стек технологий:
-1. Java
+1. Java 11
 2. Spring Boot
 3. String Data JPA
 4. PostgreSQL
