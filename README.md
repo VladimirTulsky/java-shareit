@@ -17,3 +17,4 @@
 5. Docker
 6. REST API
 7. Для тестов - Mockito, MockMvc, JUnit
+8. Оптимизированы запросы в БД
